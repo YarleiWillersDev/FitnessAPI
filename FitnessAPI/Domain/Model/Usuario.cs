@@ -22,10 +22,17 @@ namespace FitnessAPI.Domain.Model
         public Guid PerfilId { get; private set; }
         public Perfil? Perfil { get; private set; }
 
-        public ICollection<PlanoDeTreino> PlanosDeTreino { get; private set; }
-        public ICollection<PlanoAlimentar> PlanosAlimentares { get; private set; }
-        public ICollection<Objetivo> Objetivos { get; private set; }
+        private readonly List<PlanoDeTreino> _planosDeTreino;
+        public IReadOnlyCollection<PlanoDeTreino> PlanosDeTreino => _planosDeTreino;
 
+        private readonly List<PlanoAlimentar> _planosAlimentares;
+        public IReadOnlyCollection<PlanoAlimentar> PlanosAlimentares => _planosAlimentares;
+
+        private readonly List<Objetivo> _objetivos;
+        public IReadOnlyCollection<Objetivo> Objetivos => _objetivos;
+
+        private readonly List<HistoricoPeso> _historicoPesos;
+        public IReadOnlyCollection<HistoricoPeso> HistoricoPesos => _historicoPesos;
 
         private Usuario()
         {
@@ -37,9 +44,10 @@ namespace FitnessAPI.Domain.Model
             Email = default!;
             SenhaHash = default!;
 
-            PlanosDeTreino = new List<PlanoDeTreino>();
-            PlanosAlimentares = new List<PlanoAlimentar>();
-            Objetivos = new List<Objetivo>();
+            _planosDeTreino = new List<PlanoDeTreino>();
+            _planosAlimentares = new List<PlanoAlimentar>();
+            _objetivos = new List<Objetivo>();
+            _historicoPesos = new List<HistoricoPeso>();
         }
 
         public Usuario(
@@ -63,9 +71,10 @@ namespace FitnessAPI.Domain.Model
             Email = email;
             SenhaHash = senhaHash;
 
-            PlanosDeTreino = new List<PlanoDeTreino>();
-            PlanosAlimentares = new List<PlanoAlimentar>();
-            Objetivos = new List<Objetivo>();
+            _planosDeTreino = new List<PlanoDeTreino>();
+            _planosAlimentares = new List<PlanoAlimentar>();
+            _objetivos = new List<Objetivo>();
+            _historicoPesos = new List<HistoricoPeso>();
         }
 
         private void ValidarParametros(
@@ -86,6 +95,20 @@ namespace FitnessAPI.Domain.Model
             ArgumentNullException.ThrowIfNull(senhaHash);
         }
 
+        // Gestão de Dados Pessoais
+        public void AtualizarPeso(Peso novoPeso)
+        {
+            ArgumentNullException.ThrowIfNull(novoPeso);
+
+            if (Peso.Value == novoPeso.Value)
+                return;
+            
+            _historicoPesos.Add(new HistoricoPeso(Peso));
+
+            Peso = novoPeso;
+        }
+
+        // Métodos de PlanoDeTreino
         public void AdicionarPlanoDeTreino(PlanoDeTreino planoTreino)
         {
             ArgumentNullException.ThrowIfNull(planoTreino);
@@ -93,15 +116,16 @@ namespace FitnessAPI.Domain.Model
             GarantirQuePlanoDeTreinoNaoExiste(planoTreino);
 
             planoTreino.DefinirUsuario(this);
-            PlanosDeTreino.Add(planoTreino);
+            _planosDeTreino.Add(planoTreino);
         }
 
         private void GarantirQuePlanoDeTreinoNaoExiste(PlanoDeTreino planoTreino)
         {
             if (PlanosDeTreino.Any(p => p.Nome.Equals(planoTreino.Nome)))
                 throw new InvalidOperationException("Já existe um plano de treino com esse nome.");
-        }
+        } 
 
+        // Método de PlanoAlimentar
         public void AdicionarPlanoAlimentar(PlanoAlimentar planoAlimentar)
         {
             ArgumentNullException.ThrowIfNull(planoAlimentar);
@@ -109,13 +133,30 @@ namespace FitnessAPI.Domain.Model
             GarantirQuePlanoAlimentarNaoExiste(planoAlimentar);
 
             planoAlimentar.DefinirUsuario(this);
-            PlanosAlimentares.Add(planoAlimentar);
+            _planosAlimentares.Add(planoAlimentar);
         }
 
         private void GarantirQuePlanoAlimentarNaoExiste(PlanoAlimentar planoAlimentar)
         {
             if (PlanosAlimentares.Any(p => p.Nome.Equals(planoAlimentar.Nome)))
                 throw new InvalidOperationException("Já existe um plano alimentar com esse nome.");
+        }
+
+        //Métodos de Objetivo
+        public void AdicionarObjetivo(Objetivo objetivo)
+        {
+            ArgumentNullException.ThrowIfNull(objetivo);
+
+            GarantirQueObjetivoNaoExiste(objetivo);
+
+            objetivo.DefinirUsuario(this);
+            _objetivos.Add(objetivo);
+        }
+
+        private void GarantirQueObjetivoNaoExiste(Objetivo objetivo)
+        {
+            if(Objetivos.Any(o => o.Nome.Equals(objetivo.Nome)))
+                throw new InvalidOperationException("Já existe um objetivo com esse nome.");
         }
     }
 }
