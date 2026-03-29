@@ -100,12 +100,32 @@ namespace FitnessAPI.Domain.Model
         {
             ArgumentNullException.ThrowIfNull(novoPeso);
 
-            if (Peso.Value == novoPeso.Value)
+            if (Peso == novoPeso)
                 return;
             
             _historicoPesos.Add(new HistoricoPeso(Peso));
 
             Peso = novoPeso;
+        }
+
+        public void AtualizarAltura(Altura novaAltura)
+        {
+            ArgumentNullException.ThrowIfNull(novaAltura);
+
+            if (Altura == novaAltura)
+                return;
+            
+            Altura = novaAltura;
+        }
+
+        public void AtualizarIdade(Idade novaIdade)
+        {
+            ArgumentNullException.ThrowIfNull(novaIdade);
+
+            if (Idade == novaIdade)
+                return;
+            
+            Idade = novaIdade;
         }
 
         // Métodos de PlanoDeTreino
